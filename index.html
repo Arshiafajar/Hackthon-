@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindMirror</title>
+  <style>
+    /* ── CSS Variables / Themes ── */
+    :root {
+      --bg:         #f5f4f0;
+      --surface:    #ffffff;
+      --sidebar-bg: #edece8;
+      --border:     #dddbd4;
+      --text:       #2c2c2c;
+      --muted:      #6b6b6b;
+      --accent:     #4a7c6f;
+      --accent-light:#e8f0ee;
+      --tab-think:  #4a7c6f;
+      --tab-challenge: #b05c3a;
+      --tab-reflect: #5a6ea1;
+      --badge-bg:   #f0ede5;
+      --input-bg:   #faf9f6;
+      --shadow:     0 1px 4px rgba(0,0,0,0.08);
+      --radius:     10px;
+      --font:       'Segoe UI', system-ui, sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg:         #1a1a1a;
+      --surface:    #242424;
+      --sidebar-bg: #1e1e1e;
+      --border:     #333;
+      --text:       #e8e6df;
+      --muted:      #888;
+      --accent:     #5a9e8f;
+      --accent-light:#1e2e2b;
+      --badge-bg:   #2a2a2a;
+      --input-bg:   #2c2c2c;
+    }
+    [data-theme="warm"] {
+      --bg:         #fdf6ec;
+      --surface:    #fffaf3;
+      --sidebar-bg: #f5ead8;
+      --border:     #e8d9c0;
+      --text:       #3a2e1e;
+      --muted:      #7a6a50;
+      --accent:     #b07d3a;
+      --accent-light:#fdf0d8;
+      --badge-bg:   #f7ead4;
+      --input-bg:   #fffbf4;
+    }
+    [data-theme="cool"] {
+      --bg:         #eef2f7;
+      --surface:    #f8fafc;
+      --sidebar-bg: #e4ecf4;
+      --border:     #ccd8e8;
+      --text:       #1e2a3a;
+      --muted:      #5a7090;
+      --accent:     #3a6aad;
+      --accent-light:#ddeaf8;
+      --badge-bg:   #ddeaf8;
+      --input-bg:   #f4f8fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+    .logo {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.3px;
+    }
+    .logo span { color: var(--text); font-weight: 400; }
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .clarity-badge {
+      background: var(--accent-light);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .clarity-bar-wrap {
+      width: 60px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .clarity-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.5s;
+    }
+    .level-chip {
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .level-chip.l1 { background: #e6f4ef; color: #2e7d5e; border-color: #b2d8c8; }
+    .level-chip.l2 { background: #fff3e0; color: #b05c3a; border-color: #f5c99a; }
+    .level-chip.l3 { background: #fde8e8; color: #c0392b; border-color: #f5b5b5; }
+    .level-chip.l4 { background: #ede8f5; color: #6b3fa0; border-color: #c9b8e8; }
+    .icon-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--muted);
+      transition: background 0.2s;
+    }
+    .icon-btn:hover { background: var(--accent-light); color: var(--accent); }
+
+    /* ── Main Layout ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 230px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 14px 16px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+    }
+    .phase-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0 8px;
+    }
+    .phase-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      background: none;
+      text-align: left;
+      width: 100%;
+    }
+    .phase-tab:hover { background: var(--accent-light); color: var(--text); }
+    .phase-tab.active { background: var(--accent-light); color: var(--text); font-weight: 600; }
+    .phase-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-think    { background: var(--tab-think); }
+    .dot-challenge{ background: var(--tab-challenge); }
+    .dot-reflect  { background: var(--tab-reflect); }
+    .phase-count {
+      margin-left: auto;
+      background: var(--badge-bg);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 16px;
+    }
+    .sidebar-section-label {
+      padding: 0 16px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+    }
+    .session-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .session-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--muted);
+      transition: background 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .session-item:hover { background: var(--accent-light); color: var(--text); }
+    .session-item.active { background: var(--accent-light); color: var(--text); font-weight: 600; }
+
+    /* ── Chat Area ── */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* Phase Header Banner */
+    .phase-banner {
+      padding: 8px 24px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .phase-banner-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .phase-banner-label { color: var(--text); }
+    .phase-banner-desc  { color: var(--muted); font-weight: 400; }
+
+    /* Messages */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scroll-behavior: smooth;
+    }
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .msg-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .msg-row.user { flex-direction: row-reverse; }
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .avatar.ai   { background: var(--accent); color: #fff; }
+    .avatar.user { background: var(--border); color: var(--text); }
+    .bubble {
+      max-width: 68%;
+      padding: 11px 15px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .bubble.ai {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+    }
+    .bubble.user {
+      background: var(--accent);
+      color: #fff;
+      border-top-right-radius: 4px;
+    }
+    .bubble.system-gate {
+      background: var(--accent-light);
+      border: 1.5px dashed var(--accent);
+      color: var(--text);
+      max-width: 80%;
+      align-self: center;
+      text-align: center;
+      border-radius: 12px;
+      padding: 14px 20px;
+    }
+    .msg-meta {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 42px;
+    }
+    .msg-meta.right { text-align: right; }
+
+    /* Source tag */
+    .source-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+      background: var(--badge-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .confidence-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .conf-high   { background: #4caf50; }
+    .conf-medium { background: #ff9800; }
+    .conf-low    { background: #f44336; }
+
+    /* Phase label on bubble */
+    .phase-pill {
+      display: inline-block;
+      border-radius: 10px;
+      padding: 1px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .pill-think     { background: #e8f0ee; color: var(--tab-think); }
+    .pill-challenge { background: #fceae3; color: var(--tab-challenge); }
+    .pill-reflect   { background: #eaeef8; color: var(--tab-reflect); }
+
+    /* ── Think First Gate ── */
+    .gate-banner {
+      margin: 0 24px 0;
+      background: var(--accent-light);
+      border: 1.5px dashed var(--accent);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .gate-icon { font-size: 20px; }
+    .gate-text { flex: 1; }
+    .gate-text strong { font-size: 13px; color: var(--accent); display: block; margin-bottom: 3px; }
+    .gate-text p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .gate-dismissed { display: none; }
+
+    /* ── Input Bar ── */
+    .input-area {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 14px 24px 16px;
+      flex-shrink: 0;
+    }
+    .phase-switcher {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .phase-switch-btn {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .phase-switch-btn.active-think     { background: #e8f0ee; color: var(--tab-think);     border-color: var(--tab-think); }
+    .phase-switch-btn.active-challenge { background: #fceae3; color: var(--tab-challenge); border-color: var(--tab-challenge); }
+    .phase-switch-btn.active-reflect   { background: #eaeef8; color: var(--tab-reflect);   border-color: var(--tab-reflect); }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .input-box {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-family: var(--font);
+      color: var(--text);
+      resize: none;
+      outline: none;
+      min-height: 44px;
+      max-height: 130px;
+      transition: border 0.2s;
+      line-height: 1.5;
+    }
+    .input-box:focus { border-color: var(--accent); }
+    .input-box::placeholder { color: var(--muted); }
+    .send-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    .send-btn:hover { opacity: 0.88; }
+    .send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .input-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      padding-left: 2px;
+    }
+
+    /* ── Level Selector Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      width: 520px;
+      max-width: 95vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .modal-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .level-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .level-card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .level-card:hover { border-color: var(--accent); background: var(--accent-light); }
+    .level-card.selected { border-color: var(--accent); background: var(--accent-light); }
+    .level-card-icon {
+      font-size: 22px;
+      width: 40px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .level-card-body { flex: 1; }
+    .level-card-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .level-card-name span {
+      font-size: 11px;
+      font-weight: 500;
+      margin-left: 8px;
+      border-radius: 10px;
+      padding: 1px 8px;
+    }
+    .tag-l1 { background: #e6f4ef; color: #2e7d5e; }
+    .tag-l2 { background: #fff3e0; color: #b05c3a; }
+    .tag-l3 { background: #fde8e8; color: #c0392b; }
+    .tag-l4 { background: #ede8f5; color: #6b3fa0; }
+    .level-card-desc { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .modal-btn {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .modal-btn:hover { opacity: 0.88; }
+
+    /* ── Settings Panel ── */
+    .settings-panel {
+      position: fixed;
+      top: 52px;
+      right: 0;
+      width: 260px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 0 0 0 14px;
+      padding: 18px 20px;
+      z-index: 50;
+      box-shadow: -4px 4px 16px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .settings-panel.open { display: block; }
+    .settings-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .settings-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .theme-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .theme-btn {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      transition: border-color 0.2s;
+      background: none;
+      color: var(--text);
+    }
+    .theme-btn:hover, .theme-btn.active { border-color: var(--accent); }
+    .font-size-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .font-size-row button {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: none;
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .font-size-val {
+      font-size: 13px;
+      color: var(--text);
+      min-width: 30px;
+      text-align: center;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Empty State ── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      text-align: center;
+      padding: 40px;
+    }
+    .empty-state-icon { font-size: 36px; margin-bottom: 4px; }
+    .empty-state h3 { font-size: 16px; color: var(--text); font-weight: 600; }
+    .empty-state p  { font-size: 13px; max-width: 320px; line-height: 1.6; }
+  </style>
+</head>
+<body data-theme="default">
+
+<!-- ── Top Bar ── -->
+<header class="topbar">
+  <div class="logo">Mind<span>Mirror</span></div>
+  <span id="levelChip" class="level-chip l1" onclick="openLevelModal()">L1 · Supportive Coach</span>
+  <div class="topbar-right">
+    <div class="clarity-badge">
+      🧠 Clarity Score
+      <div class="clarity-bar-wrap">
+        <div class="clarity-bar-fill" id="clarityBar" style="width:0%"></div>
+      </div>
+      <span id="clarityVal">0%</span>
+    </div>
+    <button class="icon-btn" onclick="toggleSettings()">⚙ Settings</button>
+    <button class="icon-btn" onclick="openLevelModal()">🎚 Level</button>
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar">
+    <div class="sidebar-header">Phases</div>
+    <div class="phase-tabs">
+      <button class="phase-tab active" id="tab-think" onclick="switchPhase('think')">
+        <span class="phase-dot dot-think"></span>
+        💭 Think
+        <span class="phase-count" id="cnt-think">0</span>
+      </button>
+      <button class="phase-tab" id="tab-challenge" onclick="switchPhase('challenge')">
+        <span class="phase-dot dot-challenge"></span>
+        ⚡ Challenge
+        <span class="phase-count" id="cnt-challenge">0</span>
+      </button>
+      <button class="phase-tab" id="tab-reflect" onclick="switchPhase('reflect')">
+        <span class="phase-dot dot-reflect"></span>
+        🔍 Reflect
+        <span class="phase-count" id="cnt-reflect">0</span>
+      </button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Sessions</div>
+    <div class="session-list" id="sessionList">
+      <div class="session-item active">📌 Current Session</div>
+    </div>
+
+    <div style="padding:12px 16px; border-top: 1px solid var(--border);">
+      <button class="icon-btn" style="width:100%;justify-content:center;display:flex;gap:6px;" onclick="newSession()">
+        + New Session
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Chat Area ── -->
+  <div class="chat-area">
+
+    <!-- Phase Banner -->
+    <div class="phase-banner" id="phaseBanner">
+      <span class="phase-banner-dot" id="bannerDot" style="background: var(--tab-think)"></span>
+      <span class="phase-banner-label" id="bannerLabel">Think</span>
+      <span class="phase-banner-desc" id="bannerDesc">— Share your initial thoughts before AI engages</span>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages" id="messages">
+      <!-- Welcome -->
+      <div class="msg-row">
+        <div class="avatar ai">M</div>
+        <div>
+          <div class="bubble ai">
+            <span class="phase-pill pill-think">Think</span><br>
+            Welcome to <strong>MindMirror</strong>. I'm your cognitive thinking partner — not your answer machine.<br><br>
+            Before I engage, you'll always share <strong>your own thinking first</strong>. Tell me a problem, a decision, or a question you're wrestling with. I'll map your reasoning, expose your blind spots, and push you deeper.<br><br>
+            <em>Start by typing your problem below. What's on your mind?</em>
+          </div>
+          <div class="source-tag">
+            <span class="confidence-dot conf-high"></span> Socratic Method · Flavell (1979)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Think First Gate -->
+    <div class="gate-banner" id="gateBanner">
+      <div class="gate-icon">🔒</div>
+      <div class="gate-text">
+        <strong>Think First Gate — Active</strong>
+        <p>Type your own reasoning before AI responds. What do <em>you</em> think about this? AI will only engage after you share your initial thoughts.</p>
+      </div>
+      <button class="icon-btn" onclick="dismissGate()" style="flex-shrink:0;font-size:12px;">Got it</button>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="phase-switcher">
+        <button class="phase-switch-btn active-think" id="psw-think"     onclick="switchPhase('think')">💭 Think</button>
+        <button class="phase-switch-btn"              id="psw-challenge" onclick="switchPhase('challenge')">⚡ Challenge</button>
+        <button class="phase-switch-btn"              id="psw-reflect"   onclick="switchPhase('reflect')">🔍 Reflect</button>
+      </div>
+      <div class="input-row">
+        <textarea class="input-box" id="inputBox" rows="1"
+          placeholder="Share your thinking first… what do YOU think?"
+          onkeydown="handleKey(event)"
+          oninput="autoGrow(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send →</button>
+      </div>
+      <div class="input-hint" id="inputHint">💭 Think phase — share your initial reasoning before AI responds.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Level Selector Modal ── -->
+<div class="modal-overlay" id="levelModal">
+  <div class="modal">
+    <div class="modal-title">Choose Your Challenge Level</div>
+    <div class="modal-subtitle">The harder the level, the less AI helps — and the more your brain works.</div>
+    <div class="level-cards">
+      <div class="level-card selected" id="card-l1" onclick="selectLevel(1)">
+        <div class="level-card-icon">🤝</div>
+        <div class="level-card-body">
+          <div class="level-card-name">Level 1 — The Supportive Coach <span class="tag-l1">Beginner</span></div>
+          <div class="level-card-desc">Gentle guidance. AI asks soft questions, highlights 1–2 blind spots kindly, and offers scaffolding. Best for first-time users.</div>
+        </div>
+      </div>
+      <div class="level-card" id="card-l2" onclick="selectLevel(2)">
+        <div class="level-card-icon">🧐</div>
+        <div class="level-card-body">
+          <div class="level-card-name">Level 2 — The Critical Thinker <span class="tag-l2">Intermediate</span></div>
+          <div class="level-card-desc">Sharp, direct questions. AI flags multiple biases with citations, withholds hints, and scores your reasoning more strictly.</div>
+        </div>
+      </div>
+      <div class="level-card" id="card-l3" onclick="selectLevel(3)">
+        <div class="level-card-icon">😈</div>
+        <div class="level-card-body">
+          <div class="level-card-name">Level 3 — The Devil's AIdvocate <span class="tag-l3">Advanced</span></div>
+          <div class="level-card-desc">AI argues the opposite of everything you say. Attacks every assumption. Only backs down if your reasoning is airtight.</div>
+        </div>
+      </div>
+      <div class="level-card" id="card-l4" onclick="selectLevel(4)">
+        <div class="level-card-icon">🔥</div>
+        <div class="level-card-body">
+          <div class="level-card-name">Level 4 — The Stress Test <span class="tag-l4">Expert</span></div>
+          <div class="level-card-desc">Extreme pressure. AI simulates the harshest real-world critics — jury, board, expert panel. Zero comfort, maximum rigour.</div>
+        </div>
+      </div>
+    </div>
+    <button class="modal-btn" onclick="confirmLevel()">Confirm Level →</button>
+  </div>
+</div>
+
+<!-- ── Settings Panel ── -->
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-title">⚙ Personalise</div>
+
+  <div class="settings-label">Theme</div>
+  <div class="theme-options">
+    <button class="theme-btn active" id="theme-default" onclick="setTheme('default')">☁ Default</button>
+    <button class="theme-btn"        id="theme-dark"    onclick="setTheme('dark')">🌙 Dark</button>
+    <button class="theme-btn"        id="theme-warm"    onclick="setTheme('warm')">🌅 Warm</button>
+    <button class="theme-btn"        id="theme-cool"    onclick="setTheme('cool')">❄ Cool</button>
+  </div>
+
+  <div class="settings-label">Font Size</div>
+  <div class="font-size-row">
+    <button onclick="changeFontSize(-1)">−</button>
+    <span class="font-size-val" id="fontSizeVal">14px</span>
+    <button onclick="changeFontSize(1)">+</button>
+  </div>
+
+  <div class="settings-label">Clarity Score</div>
+  <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+    Tracks depth of reasoning, biases caught, and reflection engagement per session.
+  </div>
+</div>
+
+<script>
+  /* ── State ── */
+  let currentPhase   = 'think';
+  let currentLevel   = 1;
+  let selectedLevel  = 1;
+  let gateActive     = true;
+  let gateShown      = true;
+  let clarityScore   = 0;
+  let fontSize       = 14;
+  let msgCounts      = { think: 0, challenge: 0, reflect: 0 };
+  let allMessages    = [];
+  let sessionCount   = 1;
+
+  const levelData = {
+    1: { label: 'L1 · Supportive Coach',   cls: 'l1', color: '#2e7d5e' },
+    2: { label: 'L2 · Critical Thinker',   cls: 'l2', color: '#b05c3a' },
+    3: { label: "L3 · Devil's AIdvocate",  cls: 'l3', color: '#c0392b' },
+    4: { label: 'L4 · Stress Test',        cls: 'l4', color: '#6b3fa0' },
+  };
+
+  const phaseData = {
+    think:     { color: '#4a7c6f', label: 'Think',     desc: '— Share your initial thoughts before AI engages',    placeholder: 'Share your thinking first… what do YOU think?',       hint: '💭 Think phase — share your initial reasoning before AI responds.' },
+    challenge: { color: '#b05c3a', label: 'Challenge',  desc: '— AI challenges your assumptions and blind spots',   placeholder: 'Defend your reasoning or respond to the challenge…',  hint: '⚡ Challenge phase — respond to AI\'s Socratic questions.' },
+    reflect:   { color: '#5a6ea1', label: 'Reflect',    desc: '— Review, synthesise, and assess your thinking',    placeholder: 'Reflect on what changed in your thinking…',            hint: '🔍 Reflect phase — assess how your thinking evolved.' },
+  };
+
+  const aiResponses = {
+    think: [
+      { text: "That's a strong starting point. Before I dig in — <strong>what assumption is your whole argument resting on?</strong> Identify it for me.", source: "Socratic Method · Kahneman (2011)", conf: "high" },
+      { text: "Interesting framing. I noticed you haven't mentioned <strong>what evidence backs your position</strong>. What's your reasoning based on — data, intuition, or experience?", source: "Metacognition · Flavell (1979)", conf: "high" },
+      { text: "You've described the situation — now tell me: <strong>what would have to be true for you to be completely wrong about this?</strong>", source: "Critical Thinking · Nickerson (1998)", conf: "high" },
+    ],
+    challenge: [
+      { text: "You're showing <strong>[Confirmation Bias]</strong> here — you're seeking information that confirms what you already believe. What's the strongest argument <em>against</em> your position?", source: "Confirmation Bias · Nickerson, R.S. (1998)", conf: "high" },
+      { text: "That reasoning relies on an <strong>[Availability Heuristic]</strong> — you're weighting recent or memorable examples too heavily. What does the broader data actually say?", source: "Availability Heuristic · Kahneman (2011)", conf: "high" },
+      { text: "I'm pushing back: <strong>your conclusion doesn't follow from your premises</strong>. Walk me through the logical chain, step by step.", source: "Automation Bias · Parasuraman & Manzey (2010)", conf: "medium" },
+    ],
+    reflect: [
+      { text: "Compare your thinking now to where you started. <strong>What specifically changed — and why?</strong> The shift in your reasoning is more valuable than the answer itself.", source: "Spaced Repetition · Ebbinghaus (1885)", conf: "high" },
+      { text: "Your Thinking Clarity Score has improved this session. The blind spot you caught — <strong>[Confirmation Bias]</strong> — is one of the most common. You'll recognise it faster next time.", source: "Metacognition · Flavell (1979)", conf: "high" },
+      { text: "Before we close: <strong>what's one thing you'd do differently next time</strong> you face this kind of decision? Locking in that lesson is the whole point.", source: "Cognitive Load Theory · Sweller (1988)", conf: "high" },
+    ],
+  };
+
+  /* ── Phase Switch ── */
+  function switchPhase(phase) {
+    currentPhase = phase;
+    const pd = phaseData[phase];
+
+    // sidebar tabs
+    document.querySelectorAll('.phase-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + phase).classList.add('active');
+
+    // input switcher buttons
+    document.querySelectorAll('.phase-switch-btn').forEach(b => {
+      b.className = 'phase-switch-btn';
+    });
+    document.getElementById('psw-' + phase).classList.add('active-' + phase);
+
+    // banner
+    document.getElementById('bannerDot').style.background = pd.color;
+    document.getElementById('bannerLabel').textContent = pd.label;
+    document.getElementById('bannerDesc').textContent  = pd.desc;
+
+    // input
+    document.getElementById('inputBox').placeholder = pd.placeholder;
+    document.getElementById('inputHint').textContent = pd.hint;
+
+    // filter visible messages
+    renderMessages();
+  }
+
+  /* ── Render Messages ── */
+  function renderMessages() {
+    const container = document.getElementById('messages');
+    container.innerHTML = '';
+
+    // welcome msg always shown
+    const welcome = document.createElement('div');
+    welcome.className = 'msg-row';
+    welcome.innerHTML = `
+      <div class="avatar ai">M</div>
+      <div>
+        <div class="bubble ai">
+          <span class="phase-pill pill-think">Think</span><br>
+          Welcome to <strong>MindMirror</strong>. I'm your cognitive thinking partner — not your answer machine.<br><br>
+          Before I engage, you'll always share <strong>your own thinking first</strong>. Tell me a problem, a decision, or a question you're wrestling with.<br><br>
+          <em>What's on your mind?</em>
+        </div>
+        <div class="source-tag"><span class="confidence-dot conf-high"></span> Socratic Method · Flavell (1979)</div>
+      </div>`;
+    container.appendChild(welcome);
+
+    allMessages
+      .filter(m => m.phase === currentPhase)
+      .forEach(m => container.appendChild(buildBubble(m)));
+
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function buildBubble(m) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-row' + (m.role === 'user' ? ' user' : '');
+    const pillClass = 'pill-' + m.phase;
+    const time = m.time;
+
+    if (m.role === 'user') {
+      wrap.innerHTML = `
+        <div class="avatar user">U</div>
+        <div>
+          <div class="bubble user">${m.text}</div>
+          <div class="msg-meta right">${time}</div>
+        </div>`;
+    } else {
+      const conf = m.conf || 'high';
+      wrap.innerHTML = `
+        <div class="avatar ai">M</div>
+        <div>
+          <div class="bubble ai">
+            <span class="phase-pill ${pillClass}">${capitalise(m.phase)}</span><br>
+            ${m.text}
+          </div>
+          <div class="source-tag">
+            <span class="confidence-dot conf-${conf}"></span> ${m.source}
+          </div>
+          <div class="msg-meta">${time}</div>
+        </div>`;
+    }
+    return wrap;
+  }
+
+  /* ── Send ── */
+  function sendMessage() {
+    const box = document.getElementById('inputBox');
+    const text = box.value.trim();
+    if (!text) return;
+
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // User message
+    const userMsg = { role: 'user', phase: currentPhase, text: escHtml(text), time };
+    allMessages.push(userMsg);
+    msgCounts[currentPhase]++;
+    document.getElementById('cnt-' + currentPhase).textContent = msgCounts[currentPhase];
+
+    box.value = '';
+    autoGrow(box);
+    renderMessages();
+
+    // After first user message dismiss gate
+    if (gateActive) { gateActive = false; }
+
+    // Increase clarity score
+    clarityScore = Math.min(100, clarityScore + Math.floor(8 + Math.random() * 10));
+    updateClarity();
+
+    // AI reply after short delay
+    setTimeout(() => {
+      const pool = aiResponses[currentPhase];
+      const r = pool[Math.floor(Math.random() * pool.length)];
+      const aiMsg = { role: 'ai', phase: currentPhase, text: r.text, source: r.source, conf: r.conf, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) };
+      allMessages.push(aiMsg);
+      msgCounts[currentPhase]++;
+      document.getElementById('cnt-' + currentPhase).textContent = msgCounts[currentPhase];
+      renderMessages();
+    }, 900);
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function autoGrow(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 130) + 'px';
+  }
+
+  /* ── Clarity Score ── */
+  function updateClarity() {
+    document.getElementById('clarityBar').style.width = clarityScore + '%';
+    document.getElementById('clarityVal').textContent = clarityScore + '%';
+  }
+
+  /* ── Gate ── */
+  function dismissGate() {
+    document.getElementById('gateBanner').classList.add('gate-dismissed');
+  }
+
+  /* ── Level Modal ── */
+  function openLevelModal() { document.getElementById('levelModal').classList.remove('hidden'); }
+  function closeLevelModal(){ document.getElementById('levelModal').classList.add('hidden'); }
+
+  function selectLevel(n) {
+    selectedLevel = n;
+    document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-l' + n).classList.add('selected');
+  }
+
+  function confirmLevel() {
+    currentLevel = selectedLevel;
+    const d = levelData[currentLevel];
+    const chip = document.getElementById('levelChip');
+    chip.textContent = d.label;
+    chip.className   = 'level-chip ' + d.cls;
+    closeLevelModal();
+  }
+
+  document.getElementById('levelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLevelModal();
+  });
+
+  /* ── Settings ── */
+  function toggleSettings() {
+    document.getElementById('settingsPanel').classList.toggle('open');
+  }
+
+  function setTheme(t) {
+    document.body.setAttribute('data-theme', t === 'default' ? 'default' : t);
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('theme-' + t).classList.add('active');
+  }
+
+  function changeFontSize(delta) {
+    fontSize = Math.max(12, Math.min(18, fontSize + delta));
+    document.body.style.fontSize = fontSize + 'px';
+    document.getElementById('fontSizeVal').textContent = fontSize + 'px';
+  }
+
+  /* ── New Session ── */
+  function newSession() {
+    sessionCount++;
+    allMessages = [];
+    msgCounts = { think: 0, challenge: 0, reflect: 0 };
+    clarityScore = 0;
+    updateClarity();
+    ['think','challenge','reflect'].forEach(p => {
+      document.getElementById('cnt-' + p).textContent = '0';
+    });
+
+    const list = document.getElementById('sessionList');
+    const prev = list.querySelector('.active');
+    if (prev) {
+      prev.classList.remove('active');
+      prev.textContent = '📄 Session ' + (sessionCount - 1);
+    }
+    const item = document.createElement('div');
+    item.className = 'session-item active';
+    item.textContent = '📌 Current Session';
+    list.appendChild(item);
+
+    switchPhase('think');
+    renderMessages();
+  }
+
+  /* ── Helpers ── */
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function capitalise(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+</script>
+</body>
+</html>
